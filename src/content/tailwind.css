@@ -1,0 +1,290 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+#recursive-learn-sidebar {
+  --background: 0 0% 100%;
+  --foreground: 222.2 47.4% 11.2%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 47.4% 11.2%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 47.4% 11.2%;
+  --primary: 222.2 47.4% 11.2%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 222.2 84% 4.9%;
+  --radius: 0.5rem;
+}
+
+@layer base {
+  #recursive-learn-sidebar,
+  #recursive-learn-sidebar *,
+  #recursive-learn-sidebar *::before,
+  #recursive-learn-sidebar *::after {
+    box-sizing: border-box;
+  }
+
+  body.recursive-learn-active {
+    padding-right: 412px;
+    transition: padding-right 0.3s ease;
+  }
+
+  body.recursive-learn-active.recursive-learn-collapsed {
+    padding-right: 0;
+  }
+}
+
+@layer components {
+  #recursive-learn-sidebar {
+    @apply fixed right-4 top-4 bottom-4 z-[9999] flex h-[calc(100vh-32px)] w-[380px] flex-col overflow-hidden rounded-xl border border-border bg-background/95 text-foreground shadow-lg backdrop-blur;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    transition: all 0.3s ease;
+  }
+
+  #recursive-learn-sidebar.rl-preload {
+    transition: none;
+  }
+
+  #recursive-learn-sidebar.collapsed {
+    transform: translateX(calc(100% + 40px));
+  }
+
+  #recursive-learn-sidebar .rl-body {
+    @apply flex flex-1 flex-col gap-4 overflow-hidden p-3;
+  }
+
+  #recursive-learn-sidebar .rl-canvas-mode {
+    @apply p-2.5;
+  }
+
+  #recursive-learn-sidebar .rl-topbar {
+    @apply pointer-events-none absolute left-2.5 right-2.5 top-2.5 z-10 flex items-center justify-between gap-3;
+  }
+
+  #recursive-learn-sidebar .rl-topbar-left,
+  #recursive-learn-sidebar .rl-topbar-right {
+    @apply pointer-events-auto flex items-center gap-2;
+  }
+
+  #recursive-learn-sidebar .rl-mini-btn {
+    @apply inline-flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-input bg-background px-2.5 text-xs font-medium text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50;
+    --tw-ring-offset-color: hsl(var(--background));
+  }
+
+  #recursive-learn-sidebar .rl-mini-btn.rl-icon-only {
+    @apply w-8 px-0;
+  }
+
+  #recursive-learn-sidebar .rl-mini-btn.rl-focus-btn {
+    @apply border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80;
+  }
+
+  #recursive-learn-sidebar .rl-mini-btn svg {
+    @apply h-4 w-4;
+  }
+
+  #recursive-learn-sidebar .rl-history,
+  #recursive-learn-sidebar .rl-settings {
+    @apply absolute hidden flex-col gap-2 rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-md;
+  }
+
+  #recursive-learn-sidebar .rl-history {
+    @apply left-2.5 right-2.5 top-12 max-h-[45%] overflow-auto;
+    z-index: 6;
+  }
+
+  #recursive-learn-sidebar .rl-history.open {
+    @apply flex;
+  }
+
+  #recursive-learn-sidebar .rl-settings {
+    @apply right-2.5 top-12 w-56;
+    z-index: 7;
+  }
+
+  #recursive-learn-sidebar .rl-settings.open {
+    @apply flex;
+  }
+
+  #recursive-learn-sidebar .rl-settings-title {
+    @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground;
+  }
+
+  #recursive-learn-sidebar .rl-settings-row {
+    @apply flex items-center justify-between gap-2 text-xs text-foreground;
+  }
+
+  #recursive-learn-sidebar .rl-settings-row input[type="checkbox"] {
+    accent-color: hsl(var(--foreground));
+  }
+
+  #recursive-learn-sidebar .rl-history-list {
+    @apply flex flex-col gap-1.5;
+  }
+
+  #recursive-learn-sidebar .rl-history-item {
+    @apply flex items-center gap-2 rounded-md px-2 py-1.5 text-xs text-foreground transition-colors;
+  }
+
+  #recursive-learn-sidebar .rl-history-item:hover {
+    @apply bg-accent text-accent-foreground;
+  }
+
+  #recursive-learn-sidebar .rl-history-item.active {
+    @apply bg-accent text-accent-foreground;
+  }
+
+  #recursive-learn-sidebar .rl-history-label {
+    @apply flex-1 border-0 bg-transparent p-0 text-left text-xs font-medium text-foreground;
+  }
+
+  #recursive-learn-sidebar .rl-history-delete {
+    @apply inline-flex h-7 w-7 items-center justify-center rounded-md border border-transparent bg-transparent text-muted-foreground transition-colors hover:bg-muted hover:text-foreground;
+  }
+
+  #recursive-learn-sidebar .rl-history-empty {
+    @apply px-1 text-xs text-muted-foreground;
+  }
+
+  #recursive-learn-sidebar .rl-tree-viewport {
+    @apply relative flex-1 overflow-hidden rounded-lg border border-border bg-muted/30;
+    min-height: 320px;
+  }
+
+  #recursive-learn-sidebar .rl-tree-viewport::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(hsl(var(--border)) 1px, transparent 1px);
+    background-size: 18px 18px;
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  #recursive-learn-sidebar .rl-canvas {
+    @apply absolute inset-0 transition-transform;
+    transform-origin: 0 0;
+  }
+
+  #recursive-learn-sidebar.rl-canvas-hidden .rl-canvas {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  #recursive-learn-sidebar .rl-tree {
+    @apply relative z-10 flex min-w-full flex-col items-center gap-14 p-10;
+  }
+
+  #recursive-learn-sidebar .rl-node-wrapper {
+    @apply relative z-10 flex flex-col items-center;
+    margin: 0 10px;
+  }
+
+  #recursive-learn-sidebar .rl-node-root {
+    @apply w-full items-stretch;
+  }
+
+  #recursive-learn-sidebar .rl-node-wrapper.is-focused .rl-node-card,
+  #recursive-learn-sidebar .rl-node-card.is-focused,
+  #recursive-learn-sidebar input.is-focused,
+  #recursive-learn-sidebar textarea.is-focused {
+    outline: none;
+    --tw-ring-offset-color: transparent;
+  }
+
+  #recursive-learn-sidebar .rl-node-content {
+    @apply relative flex w-full min-w-[180px] max-w-[220px] flex-col items-stretch transition-transform;
+  }
+
+  #recursive-learn-sidebar .rl-node-content:hover {
+    transform: translateY(-2px);
+    z-index: 5;
+  }
+
+  #recursive-learn-sidebar .rl-node-card {
+    @apply flex min-h-12 w-full items-center justify-center rounded-t-lg border border-border bg-card px-4 py-3 text-center text-sm font-medium text-card-foreground shadow-sm;
+    border-bottom: 0;
+  }
+
+  #recursive-learn-sidebar .rl-node-title {
+    @apply text-sm font-medium text-card-foreground;
+  }
+
+  #recursive-learn-sidebar .rl-node-input-area {
+    @apply w-full rounded-b-lg border border-border bg-card p-2 shadow-sm;
+    border-top: 0;
+  }
+
+  #recursive-learn-sidebar .rl-node-input-container {
+    @apply flex items-end gap-2;
+  }
+
+  #recursive-learn-sidebar .rl-node-actions {
+    @apply flex items-center;
+  }
+
+  #recursive-learn-sidebar .rl-node-input-field {
+    @apply w-full rounded-md border border-input bg-background px-2.5 py-2 text-xs text-foreground shadow-sm transition-shadow placeholder:text-muted-foreground focus-visible:outline-none;
+  }
+
+  #recursive-learn-sidebar .rl-node-wrapper.is-leaf .rl-node-input-field {
+    min-height: 60px;
+  }
+
+  #recursive-learn-sidebar .rl-node-wrapper.has-children .rl-node-input-field {
+    min-height: 28px;
+  }
+
+  #recursive-learn-sidebar .rl-btn-icon {
+    @apply inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-none;
+  }
+
+  #recursive-learn-sidebar .rl-tree-children {
+    @apply relative mt-10 flex flex-nowrap items-start justify-center;
+  }
+
+  #recursive-learn-sidebar .rl-tree-node {
+    @apply flex flex-col items-center;
+    margin: 0 16px;
+  }
+
+  #recursive-learn-sidebar .rl-node-group {
+    @apply flex w-auto flex-col items-center;
+  }
+
+  #recursive-learn-sidebar .rl-node-input,
+  #recursive-learn-sidebar .rl-node-wrapper.is-expanded .rl-node-input {
+    display: none;
+  }
+
+  #recursive-learn-sidebar .rl-flow-arrow {
+    display: none;
+  }
+
+  #recursive-learn-sidebar .rl-toast {
+    @apply fixed bottom-10 left-1/2 z-[10001] flex -translate-x-1/2 items-center gap-3 rounded-lg bg-foreground px-4 py-2 text-sm text-background shadow-lg opacity-0 transition-all;
+    transform: translateX(-50%) translateY(12px);
+  }
+
+  #recursive-learn-sidebar .rl-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  #recursive-learn-sidebar .rl-toast-icon {
+    @apply text-background/80;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+}

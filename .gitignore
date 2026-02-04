@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# System files
+.DS_Store
+Thumbs.db
+*.log
+
+# IDE settings
+.idea/
+.vscode/
+
+# Development Documentation & Assets (Do not upload)
+PRD.md
+Recursive-Learn Project Idea.md
+AGENTS.md
+树形UI例子.png
+.claude/
+
+# Note: src/content/content.css is intentionally NOT ignored
+# so users can use the extension without building.

@@ -1,0 +1,21 @@
+{
+  "name": "recursive-learn",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build:css": "tailwindcss -i src/content/tailwind.css -o src/content/content.css",
+    "build:css:min": "tailwindcss -i src/content/tailwind.css -o src/content/content.css --minify",
+    "watch:css": "tailwindcss -i src/content/tailwind.css -o src/content/content.css --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "autoprefixer": "^10.4.24",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.14"
+  }
+}
