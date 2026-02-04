@@ -4,6 +4,8 @@
 
 **Recursive-Learn** is a Chrome extension that transforms your linear AI conversations (ChatGPT, Claude, Gemini) into structured knowledge trees. It keeps you focused, visualizes your progress, and stores everything locally.
 
+![Recursive-Learn Preview](assets/preview.png)
+
 ## 📦 Installation (For Users)
 
 You can use this extension immediately without installing Node.js or running any build commands.
