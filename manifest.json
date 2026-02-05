@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Recursive-Learn",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "A Chrome extension that helps you learn systematically with AI by visualizing your learning journey as a tree structure.",
   "icons": {
     "16": "assets/icon16.png",
