@@ -1,4 +1,4 @@
-# Recursive-Learn Chrome Extension
+# Recursive-Learn
 
 > 🌳 Visualize your learning journey with AI as a structured knowledge tree.
 
@@ -25,6 +25,15 @@ You can use this extension immediately without installing Node.js or running any
     *   Visit [ChatGPT](https://chatgpt.com), [Claude](https://claude.ai), or [Gemini](https://gemini.google.com).
     *   The Recursive-Learn sidebar will appear on the right.
     *   Enter a topic (e.g., "React Hooks") and click "Start Learning".
+
+## 🔄 Updating
+
+When a new version is available (you might see a banner in the extension), navigate to the folder where you extracted the code and run the update script:
+
+*   **Windows**: Double-click `update.bat`
+*   **Mac/Linux**: Run `./update.sh` in your terminal
+
+Then go to `chrome://extensions/` and click the **Refresh** icon on the extension card.
 
 ## 🛠️ Development (For Developers)
 
