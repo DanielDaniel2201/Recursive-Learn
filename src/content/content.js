@@ -422,12 +422,61 @@
 
 
 
+  function checkUpdate() {
+    if (!chrome.runtime || !chrome.runtime.sendMessage) return;
+    
+    chrome.runtime.sendMessage({ action: 'checkUpdate' }, (response) => {
+      // Check for lastError to avoid "The message port closed before a response was received"
+      if (chrome.runtime.lastError) {
+        // Background script might be sleeping or unreachable
+        return;
+      }
+      
+      if (response && response.hasUpdate) {
+        showUpdateBanner(response.remoteVersion);
+      }
+    });
+  }
+
+  function showUpdateBanner(version) {
+    const sidebar = document.getElementById(selectors.sidebar);
+    if (!sidebar) return;
+
+    // Remove existing banner if any
+    const existing = sidebar.querySelector('.rl-update-banner');
+    if (existing) existing.remove();
+
+    const banner = document.createElement('div');
+    banner.className = 'rl-update-banner';
+    banner.innerHTML = `
+      <div class="rl-update-content">
+        <strong>New version available (v${version})</strong>
+        <span class="rl-update-desc">Run the update script in your folder.</span>
+      </div>
+      <button class="rl-update-close" title="Dismiss">×</button>
+    `;
+
+    const closeBtn = banner.querySelector('.rl-update-close');
+    closeBtn.addEventListener('click', () => {
+      banner.remove();
+    });
+
+    // Insert at top of sidebar body
+    const body = sidebar.querySelector('.rl-body');
+    if (body) {
+      body.insertBefore(banner, body.firstChild);
+    }
+  }
+
   async function initialize() {
     if (state.initialized || state.initializing) {
       return;
     }
     state.initializing = true;
     createSidebar();
+    
+    // Check for updates shortly after init
+    setTimeout(checkUpdate, 2000);
 
     try {
       const settings = await STORAGE.getSettings();
