@@ -37,8 +37,6 @@
     canvasY: 0,
     canvasScale: 1,
     viewInitialized: false,
-    lastInjectedNodeId: null,
-    lastInjectedAt: 0,
     zoomTargetNodeId: null,
     userHasPanned: false,
     preZoomView: null
@@ -127,9 +125,20 @@
     `;
 
     document.body.appendChild(sidebar);
+    applyCursorAssets();
     attachSidebarEvents(sidebar);
     setupKeyboardShortcuts();
     setupCanvasInteractions();
+  }
+
+  function applyCursorAssets() {
+    const sidebar = document.getElementById(selectors.sidebar);
+    if (!sidebar) return;
+    if (!chrome?.runtime?.getURL) return;
+    const openCursor = chrome.runtime.getURL('assets/open-select-hand-gesture.png');
+    const dragCursor = chrome.runtime.getURL('assets/drag-hand-gesture.png');
+    sidebar.style.setProperty('--rl-cursor-open', `url("${openCursor}") 12 12, grab`);
+    sidebar.style.setProperty('--rl-cursor-drag', `url("${dragCursor}") 12 12, grabbing`);
   }
 
   function finalizeSidebar() {
@@ -149,14 +158,14 @@
   function attachSidebarEvents(sidebar) {
     // Event delegation for all clicks
     sidebar.addEventListener('click', (event) => {
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
-        return;
-      }
+        if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+          return;
+        }
 
-      const targetElement = event.target instanceof Element ? event.target : null;
-      if (targetElement && targetElement.closest('.rl-node-input-area, .rl-node-input-field')) {
-        return;
-      }
+        const targetElement = event.target instanceof Element ? event.target : null;
+        if (targetElement && targetElement.closest('.rl-node-input-area, .rl-node-input-field')) {
+          return;
+        }
 
       const historyPanel = document.getElementById(selectors.historyPanel);
     if (historyPanel && historyPanel.classList.contains('open')) {
@@ -177,22 +186,22 @@
         }
       }
 
-      const target = event.target.closest('[data-action], [data-node-id]');
-      if (!target) return;
-
-      const action = target.getAttribute('data-action');
-      const nodeId = target.getAttribute('data-node-id');
-
-      if (action) {
+      const actionTarget = targetElement ? targetElement.closest('[data-action]') : null;
+      if (actionTarget) {
         event.preventDefault();
-        handleAction(action, target);
+        handleAction(actionTarget.getAttribute('data-action'), actionTarget);
         return;
       }
 
-      if (nodeId) {
-        event.preventDefault();
-        selectNode(nodeId);
+      if (targetElement && targetElement.closest('.rl-history, .rl-settings')) {
+        return;
       }
+
+      const nodeTarget = targetElement ? targetElement.closest('.rl-node-card-button[data-node-id]') : null;
+      if (!nodeTarget) return;
+
+      event.preventDefault();
+      selectNode(nodeTarget.getAttribute('data-node-id'));
     });
 
     // Keyboard support for inputs
@@ -350,6 +359,7 @@
       state.viewInitialized = false;
       state.userHasPanned = false;
       state.pendingAutoCenter = true;
+      state.suppressAutoFitUntil = Date.now() + 600;
       await STORAGE.setActiveTree(null);
       const panel = document.getElementById(selectors.historyPanel);
       if (panel) {
@@ -653,9 +663,14 @@
       state.userHasPanned = false;
       state.preZoomView = null;
       state.pendingAutoCenter = true;
+      state.suppressAutoFitUntil = Date.now() + 600;
 
       renderTree();
       renderHistoryList();
+      requestAnimationFrame(() => {
+        resetCanvasView({ align: 'center' });
+        state.pendingAutoCenter = false;
+      });
       input.value = '';
     } catch (error) {
       console.error('[Recursive-Learn] Error starting learning:', error);
@@ -733,7 +748,7 @@
       focusRootInput();
       requestAnimationFrame(() => {
         if (state.pendingAutoCenter || !state.viewInitialized) {
-          resetCanvasView();
+          resetCanvasView({ align: 'center' });
           state.pendingAutoCenter = false;
         }
       });
@@ -748,7 +763,7 @@
       focusRootInput();
       requestAnimationFrame(() => {
         if (state.pendingAutoCenter || !state.viewInitialized) {
-          resetCanvasView();
+          resetCanvasView({ align: 'center' });
           state.pendingAutoCenter = false;
         }
       });
@@ -763,18 +778,14 @@
     rootWrapper.className = 'rl-node-wrapper rl-node-root-wrapper';
       if (state.rootSent) rootWrapper.classList.add('is-sent');
 
-    const rootContent = document.createElement('div');
-    rootContent.className = 'rl-node-content';
+    const rootInput = buildRootInput({
+      rootTopic: rootNode.label,
+      readOnly: true,
+      labelText: 'Master Topic',
+      nodeId: rootNode.id
+    });
 
-      const rootInput = buildRootInput({
-        rootTopic: rootNode.label,
-        readOnly: true,
-        labelText: 'Master Topic',
-        nodeId: rootNode.id
-      });
-
-    rootContent.appendChild(rootInput);
-    rootWrapper.appendChild(rootContent);
+    rootWrapper.appendChild(rootInput);
     rootGroup.appendChild(rootWrapper);
 
     const children = state.tree.nodes.filter((node) => node.parentId === rootNode.id);
@@ -794,9 +805,14 @@
     requestAnimationFrame(() => {
       updateTreeLayout();
       drawTreeCurves();
-      if ((state.pendingAutoCenter || (!state.viewInitialized && !state.userHasPanned)) && Date.now() > state.suppressAutoFitUntil) {
+    if ((state.pendingAutoCenter || (!state.viewInitialized && !state.userHasPanned)) && Date.now() > state.suppressAutoFitUntil) {
         if (state.pendingAutoCenter) {
-          fitCanvasToTree();
+          const onlyRoot = state.tree && state.tree.nodes.length === 1;
+          if (onlyRoot) {
+            resetCanvasView({ align: 'center' });
+          } else {
+            fitCanvasToTree();
+          }
           state.pendingAutoCenter = false;
         }
         const historyPanel = document.getElementById(selectors.historyPanel);
@@ -857,6 +873,7 @@
 
   function scheduleZoomOutIfIdle() {
     setTimeout(() => {
+      if (state.pendingAutoCenter || !state.viewInitialized) return;
       if (!isSidebarInputFocused()) {
         zoomOutToFit();
       }
@@ -933,11 +950,13 @@
     applyCanvasTransform();
   }
 
-  function resetCanvasView() {
+  function resetCanvasView(options = {}) {
     const viewport = getTreeViewport();
     const canvas = getCanvasWrap();
     const treeRoot = document.getElementById(selectors.tree);
     if (!viewport || !canvas || !treeRoot) return;
+
+    const { align = 'top' } = options;
 
     state.canvasScale = 1;
     canvas.style.transform = 'translate(0px, 0px) scale(1)';
@@ -953,13 +972,15 @@
     const targetHeight = focusTarget?.offsetHeight || 0;
 
     const desiredCenterX = viewportRect.width / 2;
-    const desiredTop = 16;
+    const desiredCenterY = viewportRect.height / 2;
 
     const targetCenterX = targetPos.x + targetWidth / 2;
-    const targetTop = targetPos.y;
+    const targetCenterY = targetPos.y + targetHeight / 2;
 
     state.canvasX = desiredCenterX - targetCenterX;
-    state.canvasY = desiredTop - targetTop;
+    state.canvasY = align === 'center'
+      ? desiredCenterY - targetCenterY
+      : 16 - targetPos.y;
     applyCanvasTransform();
     state.viewInitialized = true;
     state.userHasPanned = false;
@@ -1048,8 +1069,14 @@
     const onPointerDown = (event) => {
       if (event.button !== 0) return;
       if (event.target.closest('input, textarea, button')) return;
+      if (event.target.closest('.rl-node-content')) return;
+      if (event.target.closest('.rl-history, .rl-settings')) return;
       isPanning = true;
       viewport.classList.add('is-panning');
+      event.preventDefault();
+      if (viewport.setPointerCapture) {
+        viewport.setPointerCapture(event.pointerId);
+      }
       startX = event.clientX;
       startY = event.clientY;
       startCanvasX = state.canvasX || 0;
@@ -1072,6 +1099,9 @@
       if (!isPanning) return;
       isPanning = false;
       viewport.classList.remove('is-panning');
+      if (viewport.releasePointerCapture) {
+        viewport.releasePointerCapture(event.pointerId);
+      }
     };
 
     const onWheel = (event) => {
@@ -1214,7 +1244,7 @@
   function buildRootInput(options = {}) {
     const { rootTopic = '', readOnly = false, labelText = 'Learning Theme', nodeId = 'root' } = options;
     const container = document.createElement('div');
-    container.className = 'rl-node rl-node-root';
+    container.className = 'rl-node-content rl-node rl-node-root';
     if (readOnly) {
       container.classList.toggle('is-sent', state.rootSent);
     }
@@ -1226,11 +1256,11 @@
       // NEW STUDY STATE
       const card = document.createElement('div');
       card.className = 'rl-node-card rl-root-card-new';
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'rl-node-input-field';
-    input.placeholder = 'Define your study focus...';
-    input.dataset.nodeId = 'root';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'rl-node-input-field';
+      input.placeholder = 'Define your study focus...';
+      input.dataset.nodeId = 'root';
 
       const button = document.createElement('button');
       button.className = 'rl-btn-icon hidden';
@@ -1275,8 +1305,9 @@
       container.appendChild(card);
     } else {
       // EXISTING STUDY STATE
-      const card = document.createElement('div');
-      card.className = 'rl-node-card';
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'rl-node-card rl-node-card-button';
       card.setAttribute('data-node-id', nodeId);
       
       const title = document.createElement('div');
@@ -1310,12 +1341,12 @@
 
       sendButton.addEventListener('click', (event) => {
         event.preventDefault();
-      handleSubtopicsInject('root');
-    });
+        handleSubtopicsInject('root');
+      });
 
-    textarea.addEventListener('input', () => {
-      sendButton.classList.toggle('hidden', textarea.value.trim().length === 0);
-    });
+      textarea.addEventListener('input', () => {
+        sendButton.classList.toggle('hidden', textarea.value.trim().length === 0);
+      });
 
       textarea.addEventListener('focus', () => {
         state.zoomTargetNodeId = 'root';
@@ -1381,8 +1412,9 @@
     const nodeContent = document.createElement('div');
     nodeContent.className = 'rl-node-content';
 
-    const nodeCard = document.createElement('div'); // Changed to div as it's a container now
-    nodeCard.className = 'rl-node-card';
+    const nodeCard = document.createElement('button');
+    nodeCard.type = 'button';
+    nodeCard.className = 'rl-node-card rl-node-card-button';
     nodeCard.setAttribute('data-node-id', node.id);
 
     const title = document.createElement('div');
@@ -1503,19 +1535,14 @@
     if (!node) return;
 
     const parentNode = state.tree?.nodes.find((entry) => entry.id === node.parentId);
-    const parentLabel = parentNode ? parentNode.label : state.tree?.rootTopic || '';
+    const parentLabel = parentNode ? parentNode.label : '';
 
-    const now = Date.now();
-    if (state.lastInjectedNodeId === nodeId && now - state.lastInjectedAt < 120000) {
-      showToast('提示词已插入输入框');
-      return;
-    }
+    const prompt = parentNode
+      ? PROMPTS.getDivePrompt(node.label, parentLabel)
+      : PROMPTS.getTopDivePrompt(node.label);
 
-    const prompt = PROMPTS.getDivePrompt(node.label, parentLabel);
     DOM.injectPrompt(prompt);
-    state.lastInjectedNodeId = nodeId;
-    state.lastInjectedAt = now;
-    showToast(`Curating: ${node.label}`);
+    showToast('提示词已注入到输入框');
   }
 
   function updateSelectedInfo() {

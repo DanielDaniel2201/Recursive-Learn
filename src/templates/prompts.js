@@ -33,6 +33,18 @@ const PromptTemplates = {
   },
 
   /**
+   * Dive prompt template for top node
+   * Used when user wants to learn more about the root topic
+   * @param {string} topic - The root topic
+   * @returns {string}
+   */
+  getTopDivePrompt(topic) {
+    return `我想深入了解「${topic}」。
+
+请详细解释这个概念，帮助我理解它的用法和原理。`;
+  },
+
+  /**
    * Multi-subtopic prompt template
    * @param {string[]} topics - List of subtopics
    * @param {string} parent - The parent topic
@@ -72,6 +84,8 @@ ${list}`;
         return this.getInitPrompt(params.topic);
       case 'dive':
         return this.getDivePrompt(params.topic, params.parent);
+      case 'top-dive':
+        return this.getTopDivePrompt(params.topic);
       case 'multi-dive':
         return this.getMultiDivePrompt(params.topics, params.parent);
       case 'explain':

@@ -155,9 +155,38 @@
     @apply px-1 text-xs text-muted-foreground;
   }
 
+  #recursive-learn-sidebar .rl-history,
+  #recursive-learn-sidebar .rl-settings {
+    cursor: default;
+  }
+
+  #recursive-learn-sidebar .rl-history-item,
+  #recursive-learn-sidebar .rl-history-delete,
+  #recursive-learn-sidebar .rl-history-label,
+  #recursive-learn-sidebar .rl-settings-row,
+  #recursive-learn-sidebar .rl-settings-row input[type="checkbox"] {
+    cursor: pointer;
+  }
+
   #recursive-learn-sidebar .rl-tree-viewport {
     @apply relative flex-1 overflow-hidden rounded-lg border border-border bg-muted/30;
     min-height: 320px;
+  }
+
+  #recursive-learn-sidebar .rl-tree-viewport,
+  #recursive-learn-sidebar .rl-canvas {
+    cursor: var(--rl-cursor-open, url('../../assets/open-select-hand-gesture.png') 12 12, grab);
+  }
+
+  #recursive-learn-sidebar .rl-tree-viewport.is-panning,
+  #recursive-learn-sidebar .rl-canvas.is-panning {
+    cursor: var(--rl-cursor-drag, url('../../assets/drag-hand-gesture.png') 12 12, grabbing);
+  }
+
+  #recursive-learn-sidebar .rl-tree-viewport.is-panning,
+  #recursive-learn-sidebar .rl-tree-viewport.is-panning * {
+    cursor: var(--rl-cursor-drag, url('../../assets/drag-hand-gesture.png') 12 12, grabbing);
+    user-select: none;
   }
 
   #recursive-learn-sidebar .rl-tree-viewport::before {
@@ -205,6 +234,10 @@
     @apply relative flex w-full min-w-[180px] max-w-[220px] flex-col items-stretch transition-transform;
   }
 
+  #recursive-learn-sidebar .rl-node-content {
+    cursor: default;
+  }
+
   #recursive-learn-sidebar .rl-node-content:hover {
     transform: translateY(-2px);
     z-index: 5;
@@ -212,7 +245,23 @@
 
   #recursive-learn-sidebar .rl-node-card {
     @apply flex min-h-12 w-full items-center justify-center rounded-t-lg border border-border bg-card px-4 py-3 text-center text-sm font-medium text-card-foreground shadow-sm;
-    border-bottom: 0;
+    border-bottom-width: 1px;
+  }
+
+  #recursive-learn-sidebar .rl-node-card-button {
+    @apply cursor-pointer transition-colors;
+  }
+
+  #recursive-learn-sidebar .rl-node-card-button:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  #recursive-learn-sidebar .rl-node-card-button:hover {
+    @apply bg-accent text-accent-foreground;
+  }
+
+  #recursive-learn-sidebar .rl-node-card-button:active {
+    transform: translateY(1px);
   }
 
   #recursive-learn-sidebar .rl-node-title {
@@ -222,6 +271,10 @@
   #recursive-learn-sidebar .rl-node-input-area {
     @apply w-full rounded-b-lg border border-border bg-card p-2 shadow-sm;
     border-top: 0;
+  }
+
+  #recursive-learn-sidebar .rl-node-input-area {
+    cursor: default;
   }
 
   #recursive-learn-sidebar .rl-node-input-container {
@@ -234,6 +287,10 @@
 
   #recursive-learn-sidebar .rl-node-input-field {
     @apply w-full rounded-md border border-input bg-background px-2.5 py-2 text-xs text-foreground shadow-sm transition-shadow placeholder:text-muted-foreground focus-visible:outline-none;
+  }
+
+  #recursive-learn-sidebar .rl-node-input-field {
+    cursor: text;
   }
 
   #recursive-learn-sidebar .rl-node-wrapper.is-leaf .rl-node-input-field {
